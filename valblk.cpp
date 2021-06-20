@@ -511,8 +511,7 @@ void TYPBLK<TYPE>::SetValues(PVBLK pv, int k, int n)
   CheckType(pv)
   TYPE *lp = ((TYPBLK*)pv)->Typp;
 
-  for (register int i = k; i < n; i++)          // TODO
-    Typp[i] = lp[i];
+memcpy(Typp + k, lp + k, sizeof(TYPE) * n);
 
   } // end of SetValues
 #endif // 0
