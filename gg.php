@@ -13,7 +13,7 @@
 # 
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1335  USA
 
 # This scripts creates the MariaDB Server system tables
 #
@@ -27,6 +27,7 @@ srcdir=""
 
 args=""
 defaults=""
+defaults_group_suffix=""
 mysqld_opt=""
 user=""
 
@@ -34,11 +35,31 @@ force=0
 in_rpm=0
 ip_only=0
 cross_bootstrap=0
+install_params="create database if not exists mysql;
+create database if not exists test;
+use mysql;"
+auth_root_authentication_method=normal
+auth_root_socket_user='root'
+
+dirname0=`dirname $0 2>/dev/null`
+dirname0=`dirname $dirname0 2>/dev/null`
 
 usage()
 {
   cat <<EOF
 Usage: $0 [OPTIONS]
+  --auth-root-authentication-method=normal|socket
+                       Chooses the authentication method for the created initial
+                       root user. The default is 'normal' to creates a root user
+                       that can login without password, which can be insecure.
+                       The alternative 'socket' allows only the system root user
+                       to login as MariaDB root; this requires the unix socket
+                       authentication plugin.
+  --auth-root-socket-user=user
+                       Used with --auth-root-authentication-method=socket. It
+                       specifies the name of the MariaDB root account, as well
+                       as of the system account allowed to access it. Defaults
+                       to 'root'.
   --basedir=path       The path to the MariaDB installation directory.
   --builddir=path      If using --srcdir with out-of-directory builds, you
                        will need to set this to the location of the build
@@ -49,6 +70,9 @@ Usage: $0 [OPTIONS]
   --defaults-extra-file=name
                        Read this file after the global files are read.
   --defaults-file=name Only read default options from the given file name.
+  --defaults-group-suffix=name
+                       In addition to the given groups, read also groups with
+                       this suffix
   --force              Causes mysql_install_db to run even if DNS does not
                        work.  In that case, grant table entries that
                        normally use hostnames will use IP addresses.
@@ -59,6 +83,8 @@ Usage: $0 [OPTIONS]
   --defaults-file=path Read only this configuration file.
   --rpm                For internal use.  This option is used by RPM files
                        during the MariaDB installation process.
+  --skip-auth-anonymous-user
+                       Do not install an unprivileged anonymous user.
   --skip-name-resolve  Use IP addresses rather than hostnames when creating
                        grant table entries.  This option can be useful if
                        your DNS does not work.
@@ -129,6 +155,8 @@ parse_arguments()
       --help) usage ;;
       --no-defaults|--defaults-file=*|--defaults-extra-file=*)
         defaults="$arg" ;;
+      --defaults-group-suffix=*)
+        defaults_group_suffix="$arg" ;;
 
       --cross-bootstrap|--windows)
         # Used when building the MariaDB system tables on a different host than
@@ -141,6 +169,17 @@ parse_arguments()
         #
         # --windows is a deprecated alias
         cross_bootstrap=1 ;;
+      --skip-auth-anonymous-user)
+	install_params="$install_params
+SET @skip_auth_anonymous=1;" ;;
+      --auth-root-authentication-method=normal)
+	auth_root_authentication_method=normal ;;
+      --auth-root-authentication-method=socket)
+	auth_root_authentication_method=socket ;;
+      --auth-root-authentication-method=*)
+        usage ;;
+      --auth-root-socket-user=*)
+        auth_root_socket_user="$(parse_arg "$arg")" ;;
 
       *)
         if test -n "$pick_args"
@@ -202,8 +241,10 @@ cannot_find_file()
   fi
 
   echo
-  echo "If you compiled from source, you need to run 'make install' to"
+  echo "If you compiled from source, you need to either run 'make install' to"
   echo "copy the software into the correct location ready for operation."
+  echo "If you don't want to do a full install, you can use the --srcdir"
+  echo "option to only install the mysql database and privilege tables."
   echo
   echo "If you are using a binary release, you must either be at the top"
   echo "level of the extracted archive, or pass the --basedir option"
@@ -214,7 +255,7 @@ cannot_find_file()
 # Ok, let's go.  We first need to parse arguments which are required by
 # my_print_defaults so that we can execute it first, then later re-parse
 # the command line to add any extra bits that we need.
-parse_arguments PICK-ARGS-FROM-ARGV "$@"
+parse_arguments "$@"
 
 #
 # We can now find my_print_defaults.  This script supports:
@@ -232,9 +273,16 @@ then
 fi
 if test -n "$srcdir"
 then
+  # In an out-of-source build, builddir is not srcdir. Try to guess where
+  # builddir is by looking for my_print_defaults.
   if test -z "$builddir"
   then
-    builddir="$srcdir"
+    if test -x "$dirname0/extra/my_print_defaults"
+    then
+      builddir="$dirname0"
+    else
+      builddir="$srcdir"
+    fi
   fi
   print_defaults="$builddir/extra/my_print_defaults"
 elif test -n "$basedir"
@@ -245,6 +293,9 @@ then
     cannot_find_file my_print_defaults $basedir/bin $basedir/extra
     exit 1
   fi
+elif test -n "$dirname0" -a -x "$dirname0/./bin/my_print_defaults"
+then
+  print_defaults="$dirname0/./bin/my_print_defaults"
 else
   print_defaults="./bin/my_print_defaults"
 fi
@@ -257,8 +308,10 @@ fi
 
 # Now we can get arguments from the groups [mysqld] and [mysql_install_db]
 # in the my.cfg file, then re-run to merge with command line arguments.
-parse_arguments `"$print_defaults" $defaults --mysqld mysql_install_db`
+parse_arguments `"$print_defaults" $defaults $defaults_group_suffix --mysqld mysql_install_db`
 parse_arguments PICK-ARGS-FROM-ARGV "$@"
+
+rel_mysqld="$dirname0/bin/mysqld"
 
 # Configure paths to support files
 if test -n "$srcdir"
@@ -268,7 +321,8 @@ then
   resolveip="$basedir/extra/resolveip"
   mysqld="$basedir/sql/mysqld"
   langdir="$basedir/sql/share/english"
-  pkgdatadir="$srcdir/scripts"
+  srcpkgdatadir="$srcdir/scripts"
+  buildpkgdatadir="$builddir/scripts"
 elif test -n "$basedir"
 then
   bindir="$basedir/bin" # only used in the help text
@@ -284,33 +338,45 @@ then
     cannot_find_file mysqld $basedir/bin $basedir/libexec $basedir/sbin $basedir/bin
     exit 1
   fi
-  langdir=`find_in_dirs --dir errmsg.sys $basedir/share/english $basedir/share/english $basedir/share/mysql/english`
+  langdir=`find_in_dirs --dir errmsg.sys $basedir/share/mysql/english $basedir/share/english $basedir/share/mysql/english`
   if test -z "$langdir"
   then
-    cannot_find_file errmsg.sys $basedir/share/english $basedir/share/english $basedir/share/mysql/english
+    cannot_find_file errmsg.sys $basedir/share/mysql/english $basedir/share/english $basedir/share/mysql/english
     exit 1
   fi
-  pkgdatadir=`find_in_dirs --dir fill_help_tables.sql $basedir/share $basedir/share $basedir/share/mysql`
-  if test -z "$pkgdatadir"
+  srcpkgdatadir=`find_in_dirs --dir fill_help_tables.sql $basedir/share/mysql $basedir/share $basedir/share/mysql`
+  buildpkgdatadir=$srcpkgdatadir
+  if test -z "$srcpkgdatadir"
   then
-    cannot_find_file fill_help_tables.sql $basedir/share $basedir/share $basedir/share/mysql
+    cannot_find_file fill_help_tables.sql $basedir/share/mysql $basedir/share $basedir/share/mysql
     exit 1
   fi
+# relative from where the script was run for a relocatable install
+elif test -n "$dirname0" -a -x "$rel_mysqld" -a ! "$rel_mysqld" -ef "./bin/mysqld"
+then
+  basedir="$dirname0"
+  bindir="$basedir/bin"
+  resolveip="$bindir/resolveip"
+  mysqld="$rel_mysqld"
+  srcpkgdatadir="$basedir/share/mysql"
+  buildpkgdatadir="$basedir/share/mysql"
 else
   basedir="."
   bindir="./bin"
   resolveip="$bindir/resolveip"
   mysqld="./bin/mysqld"
-  pkgdatadir="./share"
+  srcpkgdatadir="./share/mysql"
+  buildpkgdatadir="./share/mysql"
 fi
 
 # Set up paths to SQL scripts required for bootstrap
-fill_help_tables="$pkgdatadir/fill_help_tables.sql"
-create_system_tables="$pkgdatadir/mysql_system_tables.sql"
-create_system_tables2="$pkgdatadir/mysql_performance_tables.sql"
-fill_system_tables="$pkgdatadir/mysql_system_tables_data.sql"
+fill_help_tables="$srcpkgdatadir/fill_help_tables.sql"
+create_system_tables="$srcpkgdatadir/mysql_system_tables.sql"
+create_system_tables2="$srcpkgdatadir/mysql_performance_tables.sql"
+fill_system_tables="$srcpkgdatadir/mysql_system_tables_data.sql"
+maria_add_gis_sp="$buildpkgdatadir/maria_add_gis_sp_bootstrap.sql"
 
-for f in "$fill_help_tables" "$create_system_tables" "$create_system_tables2" "$fill_system_tables"
+for f in "$fill_help_tables" "$create_system_tables" "$create_system_tables2" "$fill_system_tables" "$maria_add_gis_sp"
 do
   if test ! -f "$f"
   then
@@ -374,7 +440,7 @@ then
 fi
 
 # Create database directories
-for dir in "$ldata" "$ldata/mysql" "$ldata/test"
+for dir in "$ldata"
 do
   if test ! -d "$dir"
   then
@@ -417,17 +483,26 @@ fi
 mysqld_bootstrap="${MYSQLD_BOOTSTRAP-$mysqld}"
 mysqld_install_cmd_line()
 {
-  "$mysqld_bootstrap" $defaults "$mysqld_opt" --bootstrap \
-  "--basedir=$basedir" "--datadir=$ldata" --log-warnings=0 --loose-skip-innodb \
-  --loose-skip-ndbcluster $args --max_allowed_packet=8M \
-  --default-storage-engine=myisam \
+  "$mysqld_bootstrap" $defaults $defaults_group_suffix "$mysqld_opt" --bootstrap \
+  "--basedir=$basedir" "--datadir=$ldata" --log-warnings=0 --enforce-storage-engine="" \
+  $args --max_allowed_packet=8M \
   --net_buffer_length=16K
 }
 
 
 # Create the system and help tables by passing them to "mysqld --bootstrap"
 s_echo "Installing MariaDB/MySQL system tables in '$ldata' ..."
-if { echo "use mysql;"; cat "$create_system_tables" "$create_system_tables2" "$fill_system_tables"; } | eval "$filter_cmd_line" | mysqld_install_cmd_line > /dev/null
+case "$auth_root_authentication_method" in
+  normal)
+    install_params="$install_params
+SET @skip_auth_root_nopasswd=NULL;
+SET @auth_root_socket=NULL;" ;;
+  socket)
+    install_params="$install_params
+SET @skip_auth_root_nopasswd=1;
+SET @auth_root_socket='$auth_root_socket_user';" ;;
+esac
+if { echo "$install_params"; cat "$create_system_tables" "$create_system_tables2" "$fill_system_tables"; } | eval "$filter_cmd_line" | mysqld_install_cmd_line > /dev/null
 then
   s_echo "OK"
 else
@@ -442,7 +517,7 @@ else
   echo
   echo "You can also try to start the mysqld daemon with:"
   echo
-  echo "    shell> $mysqld --skip-grant --general-log &"
+  echo "    shell> $mysqld --skip-grant-tables --general-log &"
   echo
   echo "and use the command line tool $bindir/mysql"
   echo "to connect to the mysql database and look at the grant tables:"
@@ -453,8 +528,8 @@ else
   echo "Try 'mysqld --help' if you have problems with paths.  Using"
   echo "--general-log gives you a log in $ldata that may be helpful."
   link_to_help
-  echo "MariaDB is hosted on launchpad; You can find the latest source and"
-  echo "email lists at http://launchpad.net/maria"
+  echo "You can find the latest source at https://downloads.mariadb.org and"
+  echo "the maria-discuss email list at https://launchpad.net/~maria-discuss"
   echo
   echo "Please check all of the above before submitting a bug report"
   echo "at http://mariadb.org/jira"
@@ -471,6 +546,17 @@ else
   echo "WARNING: HELP FILES ARE NOT COMPLETELY INSTALLED!"
   echo "The \"HELP\" command might not work properly."
 fi
+
+s_echo "Creating OpenGIS required SP-s..."
+if { echo "use mysql;"; cat "$maria_add_gis_sp"; } | mysqld_install_cmd_line > /dev/null
+then
+  s_echo "OK"
+else
+  echo
+  echo "WARNING: OPENGIS REQUIRED SP-S WERE NOT COMPLETELY INSTALLED!"
+  echo "GIS extentions might not work properly."
+fi
+
 
 # Don't output verbose information if running inside bootstrap or using
 # --srcdir for testing.  In such cases, there's no end user looking at
