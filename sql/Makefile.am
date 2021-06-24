@@ -26,7 +26,6 @@ INCLUDES =		@ZLIB_INCLUDES@ \
 WRAPLIBS=		@WRAPLIBS@
 SUBDIRS =		share
 libexec_PROGRAMS =	mysqld
-EXTRA_PROGRAMS =	gen_lex_hash
 bin_PROGRAMS =		mysql_tzinfo_to_sql
 DTRACEFILES =           filesort.o \
 			.libs/libndb_la-ha_ndbcluster.o \
