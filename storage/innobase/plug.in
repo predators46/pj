@@ -137,7 +137,7 @@ MYSQL_PLUGIN_ACTIONS(innobase,  [
   fi
 
   AC_MSG_CHECKING(whether Solaris libc atomic functions are available)
-  # either define HAVE_IB_SOLARIS_ATOMICS or not
+  # Define HAVE_IB_SOLARIS_ATOMICS or not
   AC_CHECK_FUNCS(atomic_add_long \
 		 atomic_cas_32 \
 		 atomic_cas_64 \
