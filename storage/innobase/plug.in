@@ -62,10 +62,8 @@ MYSQL_PLUGIN_ACTIONS(innobase,  [
   esac
   AC_SUBST(INNODB_DYNAMIC_CFLAGS)
 
-  AC_MSG_CHECKING(whether GCC atomic builtins are available)
-  # either define HAVE_IB_GCC_ATOMIC_BUILTINS or not
-  AC_TRY_RUN(
-    [
+  AC_CACHE_CHECK([whether GCC atomic builtins are available],
+		 [mysql_cv_gcc_atomic_builtins], [AC_TRY_RUN([
       int main()
       {
 	long	x;
@@ -102,21 +100,17 @@ MYSQL_PLUGIN_ACTIONS(innobase,  [
 
 	return(0);
       }
-    ],
-    [
-      AC_DEFINE([HAVE_IB_GCC_ATOMIC_BUILTINS], [1],
-                [GCC atomic builtins are available])
-      AC_MSG_RESULT(yes)
-    ],
-    [
-      AC_MSG_RESULT(no)
-    ]
-  )
+    ], [mysql_cv_gcc_atomic_builtins=yes],
+       [mysql_cv_gcc_atomic_builtins=no],
+       [mysql_cv_gcc_atomic_builtins=no])])
 
-  AC_MSG_CHECKING(whether pthread_t can be used by GCC atomic builtins)
-  # either define HAVE_IB_ATOMIC_PTHREAD_T_GCC or not
-  AC_TRY_RUN(
-    [
+  if test "x$mysql_cv_gcc_atomic_builtins" = xyes; then
+    AC_DEFINE(HAVE_IB_GCC_ATOMIC_BUILTINS, 1,
+              [Define to 1 if compiler provides atomic builtins.])
+  fi
+
+  AC_CACHE_CHECK([whether pthread_t can be used by GCC atomic builtins],
+		 [mysql_cv_gcc_atomic_builtins_pthread_t], [AC_TRY_RUN([
       #include <pthread.h>
       #include <string.h>
 
@@ -133,23 +127,23 @@ MYSQL_PLUGIN_ACTIONS(innobase,  [
 
         return(0);
       }
-    ],
-    [
-      AC_DEFINE([HAVE_IB_ATOMIC_PTHREAD_T_GCC], [1],
-                [pthread_t can be used by GCC atomic builtins])
-      AC_MSG_RESULT(yes)
-    ],
-    [
-      AC_MSG_RESULT(no)
-    ]
-  )
+    ], [mysql_cv_gcc_atomic_builtins_pthread_t=yes],
+       [mysql_cv_gcc_atomic_builtins_pthread_t=no],
+       [mysql_cv_gcc_atomic_builtins_pthread_t=no])])
+
+  if test "x$mysql_cv_gcc_atomic_builtins_pthread_t" = xyes; then
+    AC_DEFINE(HAVE_IB_ATOMIC_PTHREAD_T_GCC, 1,
+              [Define to 1 if pthread_t can be used by GCC atomic builtins])
+  fi
 
   AC_MSG_CHECKING(whether Solaris libc atomic functions are available)
-  # either define HAVE_IB_SOLARIS_ATOMICS or not
-  AC_CHECK_FUNCS(atomic_add_long \
+  # Define HAVE_IB_SOLARIS_ATOMICS if _all_ of the following
+  # functions are present.
+  AC_CHECK_FUNCS(atomic_add_long_nv \
 		 atomic_cas_32 \
 		 atomic_cas_64 \
-		 atomic_cas_ulong,
+		 atomic_cas_ulong \
+		 atomic_swap_uchar,
 
 		 AC_DEFINE([HAVE_IB_SOLARIS_ATOMICS], [1],
 			   [Define to 1 if Solaris libc atomic functions \
@@ -228,6 +222,8 @@ MYSQL_PLUGIN_ACTIONS(innobase,  [
       AC_MSG_RESULT(no)
     ]
   )
+  fi
+  
   ])
 
 # vim: set ft=config:
