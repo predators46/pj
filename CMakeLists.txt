@@ -21,6 +21,7 @@ endif()
 
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+SET(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -latomic")
 
 # First, decide about build type (debug or release)
 # If custom compiler flags are set or cmake is invoked with -DCMAKE_BUILD_TYPE, 
