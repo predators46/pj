@@ -40,10 +40,7 @@ int gdImageSelectiveBlur( gdImagePtr src);
 int gdImageEmboss(gdImagePtr im);
 int gdImageMeanRemoval(gdImagePtr im);
 int gdImageSmooth(gdImagePtr im, float weight);
-enum gdPixelateMode {
-	GD_PIXELATE_UPPERLEFT,
-	GD_PIXELATE_AVERAGE
-};
+
 
 int gdImagePixelate(gdImagePtr im, int block_size, const unsigned int mode);
 
