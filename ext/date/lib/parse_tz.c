@@ -45,7 +45,12 @@
 #else
 #include <strings.h>
 #endif
+
+#ifndef HAVE_SYSTEM_TZDATA
 #include "timezonedb.h"
+#endif
+
+#include <ctype.h>
 
 #if (defined(__APPLE__) || defined(__APPLE_CC__)) && (defined(__BIG_ENDIAN__) || defined(__LITTLE_ENDIAN__))
 # if defined(__LITTLE_ENDIAN__)
