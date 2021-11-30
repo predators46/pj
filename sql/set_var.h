@@ -53,7 +53,7 @@ class sys_var
 {
 public:
   sys_var *next;
-  LEX_CSTRING name;
+  LEX_STRING name;
   enum flag_enum { GLOBAL, SESSION, ONLY_SESSION, SCOPE_MASK=1023,
                    READONLY=1024, ALLOCATED=2048 };
   static const int PARSE_EARLY= 1;
