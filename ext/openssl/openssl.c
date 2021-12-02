@@ -3207,10 +3207,21 @@ static int php_openssl_is_private_key(EVP_PKEY* pkey TSRMLS_DC)
 #endif
 #ifndef NO_DH
 		case EVP_PKEY_DH:
-			assert(pkey->pkey.dh != NULL);
+				{
+				DH *dh = EVP_PKEY_get0_DH(pkey);
+				if (dh != NULL) {
+					const BIGNUM *p, *q, *g, *pub_key, *priv_key;
 
-			if (NULL == pkey->pkey.dh->p || NULL == pkey->pkey.dh->priv_key) {
-				return 0;
+					DH_get0_pqg(dh, &p, &q, &g);
+					if (p == NULL) {
+						return 0;
+					}
+ 
+					DH_get0_key(dh, &pub_key, &priv_key);
+					if (priv_key == NULL) {
+						return 0;
+					}
+				}
 			}
 			break;
 #endif
