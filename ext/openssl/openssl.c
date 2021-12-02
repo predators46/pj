@@ -3227,10 +3227,11 @@ static int php_openssl_is_private_key(EVP_PKEY* pkey TSRMLS_DC)
 #endif
 #ifdef HAVE_EVP_PKEY_EC
 		case EVP_PKEY_EC:
-			assert(pkey->pkey.ec != NULL);
-
-			if ( NULL == EC_KEY_get0_private_key(pkey->pkey.ec)) {
-				return 0;
+				{
+				EC_KEY *ec = EVP_PKEY_get0_EC_KEY(pkey);
+				if (ec != NULL && NULL == EC_KEY_get0_private_key(ec)) {
+					return 0;
+				}
 			}
 			break;
 #endif
