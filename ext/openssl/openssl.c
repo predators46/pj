@@ -3187,10 +3187,21 @@ static int php_openssl_is_private_key(EVP_PKEY* pkey TSRMLS_DC)
 		case EVP_PKEY_DSA2:
 		case EVP_PKEY_DSA3:
 		case EVP_PKEY_DSA4:
-			assert(pkey->pkey.dsa != NULL);
+				{
+				DSA *dsa = EVP_PKEY_get0_DSA(pkey);
+				if (dsa != NULL) {
+					const BIGNUM *p, *q, *g, *pub_key, *priv_key;
 
-			if (NULL == pkey->pkey.dsa->p || NULL == pkey->pkey.dsa->q || NULL == pkey->pkey.dsa->priv_key){
-				return 0;
+					DSA_get0_pqg(dsa, &p, &q, &g);
+					if (p == NULL || q == NULL) {
+						return 0;
+					}
+ 
+					DSA_get0_key(dsa, &pub_key, &priv_key);
+					if (priv_key == NULL) {
+						return 0;
+					}
+				}
 			}
 			break;
 #endif
