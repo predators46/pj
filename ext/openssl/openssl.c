@@ -3243,25 +3243,29 @@ static int php_openssl_is_private_key(EVP_PKEY* pkey TSRMLS_DC)
 }
 /* }}} */
 
-#define OPENSSL_PKEY_GET_BN(_type, _name) do {							\
-		if (pkey->pkey._type->_name != NULL) {							\
-			int len = BN_num_bytes(pkey->pkey._type->_name);			\
-			char *str = emalloc(len + 1);								\
-			BN_bn2bin(pkey->pkey._type->_name, (unsigned char*)str);	\
-			str[len] = 0;                                           	\
-			add_assoc_stringl(_type, #_name, str, len, 0);				\
-		}																\
-	} while (0)
+#define OPENSSL_GET_BN(_array, _bn, _name) do { \
+		if (_bn != NULL) { \
+			int len = BN_num_bytes(_bn); \
+			char *str = emalloc(len + 1); \
+			BN_bn2bin(_bn, (unsigned char*)str); \
+			str[len] = 0; \
+			add_assoc_stringl(_array, #_name, str, len, 0); \
+		} \
+ 	} while (0);
+ 
+#define OPENSSL_PKEY_GET_BN(_type, _name) OPENSSL_GET_BN(_type, _name, _name)
 
-#define OPENSSL_PKEY_SET_BN(_ht, _type, _name) do {						\
-		zval **bn;														\
-		if (zend_hash_find(_ht, #_name, sizeof(#_name),	(void**)&bn) == SUCCESS && \
-				Z_TYPE_PP(bn) == IS_STRING) {							\
-			_type->_name = BN_bin2bn(									\
-				(unsigned char*)Z_STRVAL_PP(bn),						\
-	 			Z_STRLEN_PP(bn), NULL);									\
-	    }                                                               \
-	} while (0);
+#define OPENSSL_PKEY_SET_BN(_data, _name) do { \
+		zval **bn; \
+		if (zend_hash_find(Z_ARRVAL_P(_data), #_name, sizeof(#_name),(void**)&bn) == SUCCESS && \
+				Z_TYPE_PP(bn) == IS_STRING) { \
+			_name = BN_bin2bn( \
+				(unsigned char*)Z_STRVAL_PP(bn), \
+				Z_STRLEN_PP(bn), NULL); \
+		} else { \
+			_name = NULL; \
+		} \
+ 	} while (0);
 
 
 /* {{{ proto resource openssl_pkey_new([array configargs])
