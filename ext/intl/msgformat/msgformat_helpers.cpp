@@ -48,6 +48,17 @@ MessageFormatAdapter::getArgTypeList(const MessageFormat& m,
 }
 U_NAMESPACE_END
 
+using icu::Formattable;
+using icu::Format;
+using icu::DateFormat;
+using icu::MessageFormat;
+#ifdef HAS_MESSAGE_PATTERN
+using icu::MessagePattern;
+#endif
+using icu::MessageFormatAdapter;
+using icu::FieldPosition;
+using icu::UnicodeString;
+
 U_CFUNC int32_t umsg_format_arg_count(UMessageFormat *fmt) 
 {
 	int32_t fmt_count = 0;
