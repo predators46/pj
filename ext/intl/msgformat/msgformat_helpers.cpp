@@ -59,7 +59,7 @@ U_CFUNC void umsg_format_helper(UMessageFormat *fmt, int arg_count, zval **args,
 {
 	int fmt_count = 0;
     
-		MessageFormatAdapter::getArgTypeList(*(const MessageFormat*)fmt, fmt_count);
+		
 	
 
 	for(int32_t i = 0; i < fmt_count; ++i) {
