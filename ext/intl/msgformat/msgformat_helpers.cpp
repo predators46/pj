@@ -41,11 +41,7 @@ public:
     static const Formattable::Type* getArgTypeList(const MessageFormat& m,
                                                    int32_t& count);
 };
-const Formattable::Type*
-MessageFormatAdapter::getArgTypeList(const MessageFormat& m,
-                                     int32_t& count) {
-    return m.getArgTypeList(count);
-}
+
 U_NAMESPACE_END
 
 U_CFUNC int32_t umsg_format_arg_count(UMessageFormat *fmt) 
