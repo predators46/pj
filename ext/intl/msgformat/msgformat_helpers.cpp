@@ -51,7 +51,7 @@ U_NAMESPACE_END
 U_CFUNC int32_t umsg_format_arg_count(UMessageFormat *fmt) 
 {
 	int32_t fmt_count = 0;
-	MessageFormatAdapter::getArgTypeList(*(const MessageFormat*)fmt, fmt_count);
+	
 	return fmt_count;
 }
 
