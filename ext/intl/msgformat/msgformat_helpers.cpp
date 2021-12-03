@@ -58,9 +58,9 @@ U_CFUNC int32_t umsg_format_arg_count(UMessageFormat *fmt)
 U_CFUNC void umsg_format_helper(UMessageFormat *fmt, int arg_count, zval **args, UChar **formatted, int *formatted_len, UErrorCode *status TSRMLS_DC)
 {
 	int fmt_count = 0;
-    const Formattable::Type* argTypes =
+    
 		MessageFormatAdapter::getArgTypeList(*(const MessageFormat*)fmt, fmt_count);
-	Formattable* fargs = new Formattable[fmt_count ? fmt_count : 1];
+	
 
 	for(int32_t i = 0; i < fmt_count; ++i) {
         UChar  *stringVal = NULL;
