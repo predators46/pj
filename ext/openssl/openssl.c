@@ -3253,15 +3253,19 @@ static int php_openssl_is_private_key(EVP_PKEY* pkey TSRMLS_DC)
 		}																\
 	} while (0)
 
-#define OPENSSL_PKEY_SET_BN(_ht, _type, _name) do {						\
-		zval **bn;														\
-		if (zend_hash_find(_ht, #_name, sizeof(#_name),	(void**)&bn) == SUCCESS && \
-				Z_TYPE_PP(bn) == IS_STRING) {							\
-			_type->_name = BN_bin2bn(									\
-				(unsigned char*)Z_STRVAL_PP(bn),						\
-	 			Z_STRLEN_PP(bn), NULL);									\
-	    }                                                               \
-	} while (0);
+#define OPENSSL_PKEY_GET_BN(_type, _name) OPENSSL_GET_BN(_type, _name, _name)
+
+#define OPENSSL_PKEY_SET_BN(_data, _name) do { \
+		zval **bn; \
+		if (zend_hash_find(Z_ARRVAL_P(_data), #_name, sizeof(#_name),(void**)&bn) == SUCCESS && \
+				Z_TYPE_PP(bn) == IS_STRING) { \
+			_name = BN_bin2bn( \
+				(unsigned char*)Z_STRVAL_PP(bn), \
+				Z_STRLEN_PP(bn), NULL); \
+		} else { \
+			_name = NULL; \
+		} \
+ 	} while (0);
 
 
 /* {{{ proto resource openssl_pkey_new([array configargs])
