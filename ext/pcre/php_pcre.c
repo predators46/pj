@@ -164,10 +164,10 @@ PHPAPI pcre* pcre_get_compiled_regex_ex(char *regex, pcre_extra **extra, int *pr
 	regex_len = strlen(regex);
 	if (zend_hash_find(&PCRE_G(pcre_cache), regex, regex_len+1, (void **)&pce) == SUCCESS) {
 		/*
-		 * We use a quick pcre_info() check to see whether cache is corrupted, and if it
+		 * We use a quick pcre_fullinfo() check to see whether cache is corrupted, and if it
 		 * is, we flush it and compile the pattern from scratch.
 		 */
-		if (pcre_info(pce->re, NULL, NULL) == PCRE_ERROR_BADMAGIC) {
+		if (pcre_fullinfo(pce->re, NULL, NULL, NULL) == PCRE_ERROR_BADMAGIC) {
 			zend_hash_clean(&PCRE_G(pcre_cache));
 		} else {
 #if HAVE_SETLOCALE
