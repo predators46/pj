@@ -32,8 +32,8 @@
 
 #ifdef HAVE_STDARG_PROTOTYPES
 #include <stdarg.h>
-#define va_init_list(a,b) va_start(a,b)
 #define HAVE_STDARG_PROTOTYPES
+#define va_init_list(a,b) va_start(a,b)
 #endif
 
 extern char*
