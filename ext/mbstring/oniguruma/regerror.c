@@ -30,7 +30,7 @@
 #include "regint.h"
 #include <stdio.h> /* for vsnprintf() */
 
-#ifdef HAVE_STDARG_PROTOTYPES
+#define HAVE_STDARG_PROTOTYPES
 #include <stdarg.h>
 #define va_init_list(a,b) va_start(a,b)
 #else
@@ -185,7 +185,7 @@ onig_error_code_to_format(int code)
 #define MAX_ERROR_PAR_LEN   30
 
 extern int
-#ifdef HAVE_STDARG_PROTOTYPES
+#define HAVE_STDARG_PROTOTYPES
 onig_error_code_to_str(UChar* s, int code, ...)
 #else
 onig_error_code_to_str(s, code, va_alist)
@@ -255,7 +255,7 @@ onig_error_code_to_str(s, code, va_alist)
 
 
 void
-#ifdef HAVE_STDARG_PROTOTYPES
+#define HAVE_STDARG_PROTOTYPES
 onig_snprintf_with_pattern(char buf[], int bufsize, OnigEncoding enc,
 			    char* pat, char* pat_end, char *fmt, ...)
 #else
