@@ -33,7 +33,6 @@
 #define HAVE_STDARG_PROTOTYPES
 #include <stdarg.h>
 #define va_init_list(a,b) va_start(a,b)
-#endif
 
 extern char*
 onig_error_code_to_format(int code)
