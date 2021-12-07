@@ -1,5 +1,5 @@
 dnl
-dnl $Id: config.m4,v 1.58.2.4 2006/04/17 22:13:56 sniper Exp $
+dnl $Id: config.m4 291283 2009-11-25 01:30:06Z rasmus $
 dnl
 
 AC_DEFUN([PHP_MBSTRING_ADD_SOURCES], [
@@ -60,7 +60,7 @@ EOF
 
 AC_DEFUN([PHP_MBSTRING_SETUP_MBREGEX], [
   if test "$PHP_MBREGEX" = "yes"; then
-    AC_CACHE_CHECK(for variable length prototypes and stdarg.h, cv_php_mbstring_stdarg, [
+    AC_CACHE_CHECK(for variable length prototypes and stdarg.h, php_cv_mbstring_stdarg, [
       AC_TRY_RUN([
 #include <stdarg.h>
 int foo(int x, ...) {
@@ -72,22 +72,20 @@ int foo(int x, ...) {
 	return 0;
 }
 int main() { return foo(10, "", 3.14); }
-      ], [cv_php_mbstring_stdarg=yes], [cv_php_mbstring_stdarg=no], 
- [
-  dnl cross-compile needs something here
-case $host_alias in
-*netware*)
-cv_php_mbstring_stdarg=yes
-;;
-*)
-cv_php_mbstring_stdarg=no
-;;
-esac
-]
-)
+      ], [php_cv_mbstring_stdarg=yes], [php_cv_mbstring_stdarg=no], [
+        dnl cross-compile needs something here
+        case $host_alias in
+        *netware*)
+          php_cv_mbstring_stdarg=yes
+          ;;
+        *)
+          php_cv_mbstring_stdarg=no
+          ;;
+        esac
+      ])
     ])
 
-    AC_CHECK_HEADERS([stdlib.h string.h strings.h unistd.h sys/time.h sys/times.h])
+    AC_CHECK_HEADERS([stdlib.h string.h strings.h unistd.h sys/time.h sys/times.h stdarg.h])
     AC_CHECK_SIZEOF(int, 4)
     AC_CHECK_SIZEOF(short, 2)
     AC_CHECK_SIZEOF(long, 4)
@@ -96,10 +94,11 @@ esac
     AC_FUNC_ALLOCA
     AC_FUNC_MEMCMP
 
-    if test "$cv_php_mbstring_stdarg" = "yes"; then
-      AC_DEFINE([HAVE_STDARG_PROTOTYPES], 1, [Define if stdarg.h is available])
-    fi
     AC_DEFINE([HAVE_MBREGEX], 1, [whether to have multibyte regex support])
+
+    if test "$PHP_MBREGEX_BACKTRACK" != "no"; then
+      AC_DEFINE([USE_COMBINATION_EXPLOSION_CHECK],1,[whether to check multibyte regex backtrack])
+    fi
 
     PHP_MBSTRING_ADD_CFLAG([-DNOT_RUBY])
     PHP_MBSTRING_ADD_BUILD_DIR([oniguruma])
@@ -149,6 +148,7 @@ esac
       oniguruma/enc/utf16_le.c
       oniguruma/enc/utf32_be.c
       oniguruma/enc/utf32_le.c
+      oniguruma/enc/gb18030.c
     ])
   fi
 ])
@@ -183,6 +183,7 @@ AC_DEFUN([PHP_MBSTRING_SETUP_LIBMBFL], [
      libmbfl/filters/mbfilter_euc_cn.c
      libmbfl/filters/mbfilter_euc_jp.c
      libmbfl/filters/mbfilter_euc_jp_win.c
+     libmbfl/filters/mbfilter_cp51932.c
      libmbfl/filters/mbfilter_euc_kr.c
      libmbfl/filters/mbfilter_euc_tw.c
      libmbfl/filters/mbfilter_htmlent.c
@@ -203,6 +204,7 @@ AC_DEFUN([PHP_MBSTRING_SETUP_LIBMBFL], [
      libmbfl/filters/mbfilter_iso8859_8.c
      libmbfl/filters/mbfilter_iso8859_9.c
      libmbfl/filters/mbfilter_jis.c
+     libmbfl/filters/mbfilter_iso2022_jp_ms.c
      libmbfl/filters/mbfilter_koi8r.c
      libmbfl/filters/mbfilter_armscii8.c
      libmbfl/filters/mbfilter_qprint.c
@@ -262,7 +264,7 @@ AC_DEFUN([PHP_MBSTRING_SETUP_LIBMBFL], [
     ],[
       AC_MSG_ERROR([Problem with libmbfl. Please check config.log for more information.])
     ], [
-      -LPHP_LIBMBFL/$PHP_LIBDIR
+      -L$PHP_LIBMBFL/$PHP_LIBDIR
     ])
   fi
 ])
@@ -277,9 +279,13 @@ PHP_ARG_ENABLE(mbstring, whether to enable multibyte string support,
 PHP_ARG_ENABLE([mbregex], [whether to enable multibyte regex support],
 [  --disable-mbregex         MBSTRING: Disable multibyte regex support], yes, no)
 
+PHP_ARG_ENABLE([mbregex_backtrack], [whether to check multibyte regex backtrack],
+[  --disable-mbregex-backtrack
+                            MBSTRING: Disable multibyte regex backtrack check], yes, no)
+
 PHP_ARG_WITH(libmbfl, [for external libmbfl],
-[  --with-libmbfl[=DIR]      MBSTRING: Use external libmbfl. DIR is the libmbfl install prefix.
-                            If DIR is not set, the bundled libmbfl will be used], no, no)
+[  --with-libmbfl[=DIR]      MBSTRING: Use external libmbfl.  DIR is the libmbfl base
+                            install directory [BUNDLED]], no, no)
 
 if test "$PHP_MBSTRING" != "no"; then  
   AC_DEFINE([HAVE_MBSTRING],1,[whether to have multibyte string support])
@@ -293,7 +299,7 @@ if test "$PHP_MBSTRING" != "no"; then
   dnl libmbfl is required
   PHP_MBSTRING_SETUP_LIBMBFL
   PHP_MBSTRING_EXTENSION
-  PHP_INSTALL_HEADERS([ext/mbstring], [libmbfl/ libmbfl/mbfl])
+  PHP_INSTALL_HEADERS([ext/mbstring], [mbstring.h php_mbregex.h libmbfl/config.h libmbfl/mbfl/eaw_table.h libmbfl/mbfl/mbfilter.h libmbfl/mbfl/mbfilter_8bit.h libmbfl/mbfl/mbfilter_pass.h libmbfl/mbfl/mbfilter_wchar.h libmbfl/mbfl/mbfl_allocators.h libmbfl/mbfl/mbfl_consts.h libmbfl/mbfl/mbfl_convert.h libmbfl/mbfl/mbfl_defs.h libmbfl/mbfl/mbfl_encoding.h libmbfl/mbfl/mbfl_filter_output.h libmbfl/mbfl/mbfl_ident.h libmbfl/mbfl/mbfl_language.h libmbfl/mbfl/mbfl_memory_device.h libmbfl/mbfl/mbfl_string.h oniguruma/oniguruma.h oniguruma/php_onig_compat.h])
 fi
 
 # vim600: sts=2 sw=2 et
