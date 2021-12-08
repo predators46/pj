@@ -37,6 +37,7 @@
 #include <varargs.h>
 #define va_init_list(a,b) va_start(a)
 #endif
+#define HAVE_STDARG_PROTOTYPES
 
 extern char*
 onig_error_code_to_format(int code)
