@@ -339,54 +339,6 @@ void print_find_structs()
 }
 
 
-static void usage(int version)
-{
-  printf("%s  Ver 3.6 Distrib %s, for %s (%s)\n",
-	 my_progname, MYSQL_SERVER_VERSION, SYSTEM_TYPE, MACHINE_TYPE);
-  if (version)
-    return;
-  puts(ORACLE_WELCOME_COPYRIGHT_NOTICE("2000, 2011"));
-  puts("This program generates a perfect hashing function for the sql_lex.cc");
-  printf("Usage: %s [OPTIONS]\n\n", my_progname);
-  my_print_help(my_long_options);
-}
-
-
-extern "C" my_bool
-get_one_option(int optid, const struct my_option *opt __attribute__((unused)),
-	       char *argument __attribute__((unused)))
-{
-  switch(optid) {
-  case 'V':
-    usage(1);
-    exit(0);
-  case 'I':
-  case '?':
-    usage(0);
-    exit(0);
-  case '#':
-    DBUG_PUSH(argument ? argument : default_dbug_option);
-    break;
-  }
-  return 0;
-}
-
-
-static int get_options(int argc, char **argv)
-{
-  int ho_error;
-
-  if ((ho_error= handle_options(&argc, &argv, my_long_options, get_one_option)))
-    exit(ho_error);
-
-  if (argc >= 1)
-  {
-    usage(0);
-     exit(1);
-  }
-  return(0);
-}
-
 
 int check_dup_symbols(SYMBOL *s1, SYMBOL *s2)
 {
@@ -438,12 +390,7 @@ int check_duplicates()
 
 int main(int argc,char **argv)
 {
-  MY_INIT(argv[0]);
-  DBUG_PROCESS(argv[0]);
-
-  if (get_options(argc,(char **) argv))
-    exit(1);
-
+  
   /* Broken up to indicate that it's not advice to you, gentle reader. */
   printf("/*\n\n  Do " "not " "edit " "this " "file " "directly!\n\n*/\n");
 
@@ -544,7 +491,7 @@ static inline SYMBOL *get_hash_symbol(const char *s,\n\
   }\n\
 }\n"
 );
-  my_end(0);
+  
   exit(0);
 }
 
