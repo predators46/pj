@@ -1875,7 +1875,6 @@ Optional Packages:
                           library. Given DIR, zlib binary is assumed to be in
                           $DIR/lib and header files in $DIR/include.
   --with-libwrap=DIR      Compile in libwrap (tcp_wrappers) support
-  --with-pstack           Use the pstack backtrace library
   --without-debug         Build a production version without debugging code
   --with-mysqld-ldflags   Extra linking arguments for mysqld
   --with-client-ldflags   Extra linking arguments for clients
@@ -22521,179 +22520,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-# Check whether --with-pstack was given.
-if test "${with_pstack+set}" = set; then
-  withval=$with_pstack;  USE_PSTACK=$withval
-else
-   USE_PSTACK=no
-fi
 
-  pstack_libs=
-  pstack_dirs=
-  if test "$USE_PSTACK" = yes -a "$TARGET_LINUX" = "true" -a "$BASE_MACHINE_TYPE" = "i386"
-  then
-    have_libiberty= have_libbfd=
-    my_save_LIBS="$LIBS"
-    { $as_echo "$as_me:$LINENO: checking for fdmatch in -liberty" >&5
-$as_echo_n "checking for fdmatch in -liberty... " >&6; }
-if test "${ac_cv_lib_iberty_fdmatch+set}" = set; then
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-liberty  $LIBS"
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char fdmatch ();
-int
-main ()
-{
-return fdmatch ();
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
-$as_echo "$ac_try_echo") >&5
-  (eval "$ac_link") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext && {
-	 test "$cross_compiling" = yes ||
-	 $as_test_x conftest$ac_exeext
-       }; then
-  ac_cv_lib_iberty_fdmatch=yes
-else
-  $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_cv_lib_iberty_fdmatch=no
-fi
-
-rm -rf conftest.dSYM
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_lib_iberty_fdmatch" >&5
-$as_echo "$ac_cv_lib_iberty_fdmatch" >&6; }
-if test "x$ac_cv_lib_iberty_fdmatch" = x""yes; then
-  have_libiberty=yes
-       { $as_echo "$as_me:$LINENO: checking for bfd_openr in -lbfd" >&5
-$as_echo_n "checking for bfd_openr in -lbfd... " >&6; }
-if test "${ac_cv_lib_bfd_bfd_openr+set}" = set; then
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lbfd -liberty $LIBS"
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char bfd_openr ();
-int
-main ()
-{
-return bfd_openr ();
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
-$as_echo "$ac_try_echo") >&5
-  (eval "$ac_link") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext && {
-	 test "$cross_compiling" = yes ||
-	 $as_test_x conftest$ac_exeext
-       }; then
-  ac_cv_lib_bfd_bfd_openr=yes
-else
-  $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_cv_lib_bfd_bfd_openr=no
-fi
-
-rm -rf conftest.dSYM
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_lib_bfd_bfd_openr" >&5
-$as_echo "$ac_cv_lib_bfd_bfd_openr" >&6; }
-if test "x$ac_cv_lib_bfd_bfd_openr" = x""yes; then
-  have_libbfd=yes
-fi
-
-fi
-
-    LIBS="$my_save_LIBS"
-
-    if test x"$have_libiberty" = xyes -a x"$have_libbfd" = xyes
-    then
-      pstack_dirs='$(top_srcdir)'/pstack
-      pstack_libs="../pstack/libpstack.a -lbfd -liberty"
-      # We must link staticly when using pstack
-      with_mysqld_ldflags="-all-static"
-
-
-
-cat >>confdefs.h <<\_ACEOF
-#define USE_PSTACK 1
-_ACEOF
-
-    else
-      USE_PSTACK="no"
-    fi
-  else
-    USE_PSTACK="no"
-  fi
-fi
  if test "$USE_PSTACK" = "yes"; then
   COMPILE_PSTACK_TRUE=
   COMPILE_PSTACK_FALSE='#'
@@ -40741,7 +40568,8 @@ $debug ||
 if test -n "$CONFIG_FILES"; then
 
 
-ac_cr=''
+ac_cr='
+'
 ac_cs_awk_cr=`$AWK 'BEGIN { print "a\rb" }' </dev/null 2>/dev/null`
 if test "$ac_cs_awk_cr" = "a${ac_cr}b"; then
   ac_cs_awk_cr='\\r'
