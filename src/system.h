@@ -78,15 +78,6 @@
 #include <sys/stat.h>
 #endif
 
-#ifdef HAVE_LINUX_SYSINFO_H
-#define _LINUX_KERNEL_H
-#include <linux/sysinfo.h>
-#endif
-
-#ifdef HAVE_SYS_SYSINFO_H
-#include <sys/sysinfo.h>
-#endif
-
 #ifdef HAVE_TIME_H
 #include <time.h>
 #endif
@@ -125,6 +116,11 @@
 
 #ifdef HAVE_SIGNAL_H
 #include <signal.h>
+#endif
+
+#ifdef HAVE_LINUX_SYSINFO_H
+#define _LINUX_KERNEL_H
+#include <linux/sysinfo.h>
 #endif
 
 #if defined(__linux__)
@@ -168,10 +164,6 @@
 
 #ifdef HAVE_NET_IF_TUN_H
 #include <net/if_tun.h>
-#endif
-
-#ifdef HAVE_NET_ETHERNET_H
-#include <net/ethernet.h>
 #endif
 
 #ifdef HAVE_ASM_TYPES_H
