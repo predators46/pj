@@ -3176,9 +3176,11 @@ pid_t redir_fork(int in, int out) {
     }
 
 #if defined(F_DUPFD)
-    if (fcntl(in,F_GETFL,0) == -1) return -1; safe_close(0);
+    if (fcntl(in,F_GETFL,0) == -1) return -1;
+    safe_close(0);
     if (fcntl(in,F_DUPFD,0) == -1) return -1;
-    if (fcntl(out,F_GETFL,1) == -1) return -1; safe_close(1);
+    if (fcntl(out,F_GETFL,1) == -1) return -1;
+    safe_close(1);
     if (fcntl(out,F_DUPFD,1) == -1) return -1;
 #else
     if (dup2(in,0) == -1) return -1;
@@ -3252,14 +3254,17 @@ int redir_main(struct redir_t *redir,
   }
 
 #define redir_memcopy(msgtype) \
+  do {
   redir_challenge(challenge); \
   redir_chartohex(challenge, hexchal, REDIR_MD5LEN); \
   msg.mtype = msgtype; \
   memcpy(conn.s_state.redir.uamchal, challenge, REDIR_MD5LEN); \
-  log_dbg("---->>> resetting challenge: %s", hexchal)
+  log_dbg("---->>> resetting challenge: %s", hexchal); \
+  } while (0)
 
 #ifdef USING_IPC_UNIX
 #define redir_msg_send(msgopt) \
+  do {
   msg.mdata.opt = msgopt; \
   memcpy(&msg.mdata.address, address, sizeof(msg.mdata.address)); \
   memcpy(&msg.mdata.baddress, baddress, sizeof(msg.mdata.baddress)); \
@@ -3268,9 +3273,11 @@ int redir_main(struct redir_t *redir,
   if (redir_send_msg(redir, &msg) < 0) { \
     log_err(errno, "write() failed! msgfd=%d type=%d len=%d", redir->msgfd, msg.mtype, sizeof(msg.mdata)); \
     return redir_main_exit(&socket, forked, rreq); \
-  } 
+  } \
+  } while (0)
 #else
 #define redir_msg_send(msgopt) \
+  do {
   msg.mdata.opt = msgopt; \
   memcpy(&msg.mdata.address, address, sizeof(msg.mdata.address)); \
   memcpy(&msg.mdata.baddress, baddress, sizeof(msg.mdata.baddress)); \
@@ -3279,7 +3286,8 @@ int redir_main(struct redir_t *redir,
   if (msgsnd(redir->msgid, (void *)&msg, sizeof(msg.mdata), 0) < 0) { \
     log_err(errno, "msgsnd() failed! msgid=%d type=%d len=%d", redir->msgid, msg.mtype, sizeof(msg.mdata)); \
     return redir_main_exit(&socket, forked, rreq); \
-  } 
+  } \
+  } while (0)
 #endif
 
   /*
