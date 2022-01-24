@@ -3253,11 +3253,11 @@ int redir_main(struct redir_t *redir,
     httpreq.data_in = rreq->wbuf;
   }
 
-#define redir_memcopy(msgtype) \
-  redir_challenge(challenge); \
-  redir_chartohex(challenge, hexchal, REDIR_MD5LEN); \
-  msg.mtype = msgtype; \
-  memcpy(conn.s_state.redir.uamchal, challenge, REDIR_MD5LEN); \
+#define redir_memcopy(msgtype)
+  redir_challenge(challenge);
+  redir_chartohex(challenge, hexchal, REDIR_MD5LEN);
+  msg.mtype = msgtype;
+  memcpy(conn.s_state.redir.uamchal, challenge, REDIR_MD5LEN);
   log_dbg("---->>> resetting challenge: %s", hexchal)
 
 #ifdef USING_IPC_UNIX
