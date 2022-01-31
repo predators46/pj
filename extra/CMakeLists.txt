@@ -25,6 +25,12 @@ ${CMAKE_SOURCE_DIR}/storage/ndb/include/mgmapi)
 # Default install component for the files is Server here
 SET(MYSQL_INSTALL_COMPONENT Server)
 
+# when crosscompiling import the executable targets from a file
+IF(CMAKE_CROSSCOMPILING)
+  SET(IMPORT_EXECUTABLES "IMPORTFILE-NOTFOUND" CACHE FILEPATH "Point it to the export file from a native build")
+  INCLUDE(${IMPORT_EXECUTABLES})
+ENDIF(CMAKE_CROSSCOMPILING)
+
 IF(NOT CMAKE_CROSSCOMPILING)
  ADD_EXECUTABLE(comp_err comp_err.c)
  TARGET_LINK_LIBRARIES(comp_err mysys)
@@ -40,6 +46,7 @@ ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/include/mysqld_error.h
                     --state_file=${PROJECT_BINARY_DIR}/include/sql_state.h
                     --in_file=${PROJECT_SOURCE_DIR}/sql/share/errmsg-utf8.txt
                    DEPENDS ${PROJECT_SOURCE_DIR}/sql/share/errmsg-utf8.txt
+                   DEPENDS comp_err
                    ${CMAKE_CURRENT_SOURCE_DIR}/comp_err.c)
 
 ADD_CUSTOM_TARGET(GenError
@@ -64,6 +71,13 @@ IF(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
   MY_SEARCH_LIBS(inet_aton  "nsl;socket;resolv" SOLARIS_NSL)
   TARGET_LINK_LIBRARIES(resolveip ${SOLARIS_NSL})
 ENDIF()
+
+
+# export the generator target to a file, so it can be imported (see above) by another build
+# the IF() is not necessary, but makes the intention clearer
+IF(NOT CMAKE_CROSSCOMPILING) 
+  EXPORT(TARGETS comp_err FILE ${CMAKE_BINARY_DIR}/ImportExecutables.cmake )
+ENDIF(NOT CMAKE_CROSSCOMPILING)
 
 
 MYSQL_ADD_EXECUTABLE(replace replace.c)
