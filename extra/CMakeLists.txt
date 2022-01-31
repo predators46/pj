@@ -25,14 +25,14 @@ ${CMAKE_SOURCE_DIR}/storage/ndb/include/mgmapi)
 # Default install component for the files is Server here
 SET(MYSQL_INSTALL_COMPONENT Server)
 
-IF(NOT CMAKE_CROSSCOMPILING)
+IF(CMAKE_CROSSCOMPILING)
  ADD_EXECUTABLE(comp_err comp_err.c)
  TARGET_LINK_LIBRARIES(comp_err mysys)
 ENDIF()
 
 ADD_CUSTOM_COMMAND(OUTPUT ${PROJECT_BINARY_DIR}/include/mysqld_error.h 
                    ${PROJECT_BINARY_DIR}/sql/share/english/errmsg.sys
-                   COMMAND comp_err
+                   COMMAND ./comp_err
                     --charset=${PROJECT_SOURCE_DIR}/sql/share/charsets 
                     --out-dir=${PROJECT_BINARY_DIR}/sql/share/
                     --header_file=${PROJECT_BINARY_DIR}/include/mysqld_error.h 
