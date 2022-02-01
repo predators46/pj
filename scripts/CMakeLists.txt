@@ -14,7 +14,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
 # Build comp_sql - used for embedding SQL in C or C++ programs
-IF(NOT CMAKE_CROSSCOMPILING)
+IF(CMAKE_CROSSCOMPILING)
  ADD_EXECUTABLE(comp_sql comp_sql.c)
  TARGET_LINK_LIBRARIES(comp_sql)
 ENDIF()
