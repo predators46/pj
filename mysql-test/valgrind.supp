@@ -25,7 +25,6 @@
    pthread allocate_tls memory loss
    Memcheck:Leak
    fun:calloc
-   ...
    fun:_dl_allocate_tls
    fun:allocate_stack
    fun:pthread_create*
