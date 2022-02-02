@@ -35,7 +35,7 @@
 #include <sys/select.h>
 #endif
 #ifdef HAVE_POLL
-#include <poll.h>
+#include <sys/poll.h>
 #endif
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
