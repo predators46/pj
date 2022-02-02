@@ -123,7 +123,7 @@ char *my_strerror(char *buf, size_t len, int nr)
        (defined _XOPEN_SOURCE   && (_XOPEN_SOURCE >= 600)))      &&    \
       ! defined _GNU_SOURCE
     strerror_r(nr, buf, len);             /* I can build with or without GNU */
-#elif defined _GNU_SOURCE
+#elif defined(__GLIBC__) && defined (_GNU_SOURCE)
     char *r= strerror_r(nr, buf, len);
     if (r != buf)                         /* Want to help, GNU? */
       strmake(buf, r, len - 1);           /* Then don't. */
@@ -136,8 +136,8 @@ char *my_strerror(char *buf, size_t len, int nr)
     strerror() return values are implementation-dependent, so let's
     be pragmatic.
   */
-  if (!buf[0])
-    strmake(buf, "unknown error", len - 1);
+  if (!buf[0] || !strcmp(buf, "No error information"))
+    strmake(buf, "Unknown error", len - 1);
 
   return buf;
 }
