@@ -46,16 +46,17 @@ struct st_my_timer
   void (*notify_function)(my_timer_t *);
 };
 
+C_MODE_START
 
 #ifdef HAVE_PSI_INTERFACE
 extern PSI_thread_key key_thread_timer_notifier;
 #endif
 
 /* Initialize internal components. */
-int my_timer_initialize();
+int my_timer_initialize(void);
 
 /* Release any resources acquired. */
-void my_timer_deinitialize();
+void my_timer_deinitialize(void);
 
 /* Create a timer object. */
 int my_timer_create(my_timer_t *timer);
@@ -69,5 +70,6 @@ int my_timer_cancel(my_timer_t *timer, int *state);
 /* Delete a timer object. */
 void my_timer_delete(my_timer_t *timer);
 
+C_MODE_END
 
 #endif /* MY_TIMER_H */
