@@ -15,6 +15,7 @@
 
 
 #include "my_global.h"
+#include "my_thread.h"      /* my_thread_init, my_thread_end */
 #include "my_timer.h"       /* my_timer_t */
 
 #include <signal.h>
